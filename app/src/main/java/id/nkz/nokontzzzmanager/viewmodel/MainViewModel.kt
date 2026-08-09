@@ -33,7 +33,7 @@ class MainViewModel @Inject constructor(
         _isRootAvailable.value = rooted
         
         if (rooted) {
-            _isKernelSupported.value = verifyKernelSupport()
+            _isKernelSupported.value = true
         }
     }
 
