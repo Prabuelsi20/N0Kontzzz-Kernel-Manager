@@ -177,7 +177,7 @@ class TuningRepository @Inject constructor(
         return when {
             ramGB <= 3L -> 1_073_741_824L   // 1 GB
             ramGB <= 4L -> 2_147_483_648L   // 2 GB
-            ramGB <= 6L -> 4_294_967_296L   // 4 GB
+            ramGB <= 6L -> 7_516_192_768L   // 7 GB
             ramGB <= 8L -> 9_663_676_416L   // 9 GB
             ramGB <= 12L -> 15_032_385_536L // 14 GB
             ramGB <= 16L -> 19_327_352_832L // 18 GB

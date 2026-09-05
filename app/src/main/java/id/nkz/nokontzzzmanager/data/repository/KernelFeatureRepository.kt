@@ -202,8 +202,8 @@ class KernelFeatureRepository @Inject constructor(
         for (path in paths) {
             val result = sysfsHelper.readFileToString(path, "I/O Scheduler from $path")
             if (result != null) {
-                val activeMatch = Regex("""\[(\w+)]""").find(result)
-                return activeMatch?.groupValues?.get(1) ?: "N/A"
+                val activeMatch = Regex("""\[([^\]]+)]""").find(result)
+                return activeMatch?.groupValues?.get(1)?.trim() ?: "N/A"
             }
         }
         return "N/A"
@@ -219,11 +219,12 @@ class KernelFeatureRepository @Inject constructor(
         for (path in paths) {
             val result = sysfsHelper.readFileToString(path, "Available I/O Schedulers from $path")
             if (result != null) {
-                return Regex("""\[(\w+)]|(\w+)""")
-                    .findAll(result)
-                    .map { it.groupValues[1].ifEmpty { it.groupValues[2] } }
+                return result
+                    .trim()
+                    .split(Regex("""\s+"""))
+                    .map { it.trim('[', ']') }
                     .filter { it.isNotEmpty() }
-                    .toList()
+                    .distinct()
             }
         }
         return emptyList()
