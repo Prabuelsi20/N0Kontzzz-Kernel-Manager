@@ -56,7 +56,7 @@ jobs:
           CI_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           CI_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           CI_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          CI_VERSION_CODE: ${{ 10000 + github.run_number }}
+          CI_VERSION_CODE: ${{ github.run_number }}
         run: |
           ./gradlew assembleDebug \
             --stacktrace \
