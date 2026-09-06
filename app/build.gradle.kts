@@ -1,3 +1,4 @@
+```kotlin
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)
@@ -35,7 +36,8 @@ abstract class BuildNativeTelemetryTask @Inject constructor(
 
     init {
         group = "build"
-        description = "Builds the optional Rust JNI telemetry library. Requires Android NDK and a Rust Android target."
+        description =
+            "Builds the optional Rust JNI telemetry library. Requires Android NDK and a Rust Android target."
     }
 
     @TaskAction
@@ -107,8 +109,20 @@ configure <com.android.build.api.dsl.ApplicationExtension> {
         }
 
         release {
+            // Production / Stable build configuration.
+            // R8 removes unused code and optimizes the APK.
             isMinifyEnabled = true
+
+            // Removes unused Android resources from the final APK.
             isShrinkResources = true
+
+            // GitHub Actions Release builds use the persistent CI signing key.
+            // Local Release builds continue using the default release configuration
+            // unless CI signing environment variables are provided.
+            if (!System.getenv("CI_KEYSTORE_PATH").isNullOrBlank()) {
+                signingConfig = signingConfigs.getByName("ci")
+            }
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt")
             )
@@ -156,7 +170,8 @@ tasks.register<BuildNativeTelemetryTask>("buildNativeTelemetry") {
 
 tasks.register<Copy>("copyNativeTelemetry") {
     group = "build"
-    description = "Copies libnkm_telemetry.so into the app JNI libs staging directory."
+    description =
+        "Copies libnkm_telemetry.so into the app JNI libs staging directory."
 
     dependsOn("buildNativeTelemetry")
 
@@ -184,7 +199,9 @@ configurations.all {
 kotlin {
     compilerOptions {
         jvmTarget.set(
-            org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+            org.gradle.api.provider.Provider<org.gradle.jvm.toolchain.JavaLanguageVersion>::class.let {
+                org.gradle.api.provider.Provider<org.gradle.jvm.toolchain.JavaLanguageVersion>
+            }
         )
     }
 }
@@ -251,3 +268,4 @@ dependencies {
     testImplementation(libs.mockito.core)
     testImplementation(libs.robolectric)
 }
+```
