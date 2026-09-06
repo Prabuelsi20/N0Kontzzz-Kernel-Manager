@@ -198,9 +198,7 @@ configurations.all {
 kotlin {
     compilerOptions {
         jvmTarget.set(
-            org.gradle.api.provider.Provider<org.gradle.jvm.toolchain.JavaLanguageVersion>::class.let {
-                org.gradle.api.provider.Provider<org.gradle.jvm.toolchain.JavaLanguageVersion>
-            }
+            org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
         )
     }
 }
