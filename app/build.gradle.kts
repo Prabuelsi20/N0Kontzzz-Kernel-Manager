@@ -268,4 +268,3 @@ dependencies {
     testImplementation(libs.mockito.core)
     testImplementation(libs.robolectric)
 }
-```
