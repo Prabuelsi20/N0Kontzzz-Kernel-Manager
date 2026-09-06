@@ -41,13 +41,21 @@ abstract class BuildNativeTelemetryTask @Inject constructor(
     @TaskAction
     fun build() {
         if (!ndkHome.isPresent) {
-            throw GradleException("Native telemetry build requires ANDROID_NDK_HOME or ANDROID_NDK_ROOT to point at an installed Android NDK.")
+            throw GradleException(
+                "Native telemetry build requires ANDROID_NDK_HOME or ANDROID_NDK_ROOT to point at an installed Android NDK."
+            )
         }
 
         execOperations.exec {
             workingDir = crateDir.get().asFile
             environment("ANDROID_NDK_HOME", ndkHome.get())
-            commandLine(cargoExecutable.get(), "build", "--release", "--target", target.get())
+            commandLine(
+                cargoExecutable.get(),
+                "build",
+                "--release",
+                "--target",
+                target.get()
+            )
         }
     }
 }
@@ -60,37 +68,85 @@ configure <com.android.build.api.dsl.ApplicationExtension> {
         applicationId = "id.nkz.nokontzzzmanager"
         minSdk = 31
         targetSdk = 36
-        versionCode = 122
+
+        // Local builds keep versionCode 122.
+        // GitHub Actions overrides this using CI_VERSION_CODE.
+        versionCode = System.getenv("CI_VERSION_CODE")?.toIntOrNull() ?: 122
+
         versionName = "2.0.0-beta"
     }
+
+    signingConfigs {
+        create("ci") {
+            val keystorePath = System.getenv("CI_KEYSTORE_PATH")
+            val keystorePassword = System.getenv("CI_KEYSTORE_PASSWORD")
+            val keyAlias = System.getenv("CI_KEY_ALIAS")
+            val keyPassword = System.getenv("CI_KEY_PASSWORD")
+
+            if (
+                !keystorePath.isNullOrBlank() &&
+                !keystorePassword.isNullOrBlank() &&
+                !keyAlias.isNullOrBlank() &&
+                !keyPassword.isNullOrBlank()
+            ) {
+                storeFile = file(keystorePath)
+                storePassword = keystorePassword
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPassword
+            }
+        }
+    }
+
     buildTypes {
+        debug {
+            // GitHub Actions uses the persistent CI signing key.
+            // Local builds continue using the normal Android debug key.
+            if (!System.getenv("CI_KEYSTORE_PATH").isNullOrBlank()) {
+                signingConfig = signingConfigs.getByName("ci")
+            }
+        }
+
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt")
+            )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     lint {
         disable.add("NullSafeMutableLiveData")
     }
-    buildFeatures { compose = true }
+
+    buildFeatures {
+        compose = true
+    }
 }
 
 val nativeTelemetryTarget = providers.gradleProperty("nkmTelemetryTarget")
     .orElse("aarch64-linux-android")
+
 val nativeTelemetryAbi = providers.gradleProperty("nkmTelemetryAbi")
     .orElse("arm64-v8a")
-val nativeTelemetryCrateDir = rootProject.layout.projectDirectory.dir("native/telemetry")
-val nativeTelemetryOutputDir = layout.buildDirectory.dir("generated/jniLibs/${nativeTelemetryAbi.get()}")
+
+val nativeTelemetryCrateDir =
+    rootProject.layout.projectDirectory.dir("native/telemetry")
+
+val nativeTelemetryOutputDir =
+    layout.buildDirectory.dir("generated/jniLibs/${nativeTelemetryAbi.get()}")
 
 tasks.register<BuildNativeTelemetryTask>("buildNativeTelemetry") {
     val ndkHomeProvider = providers.environmentVariable("ANDROID_NDK_HOME")
         .orElse(providers.environmentVariable("ANDROID_NDK_ROOT"))
-    val cargo = providers.environmentVariable("CARGO").orElse("cargo")
+
+    val cargo = providers.environmentVariable("CARGO")
+        .orElse("cargo")
 
     crateDir.set(nativeTelemetryCrateDir)
     target.set(nativeTelemetryTarget)
@@ -101,9 +157,15 @@ tasks.register<BuildNativeTelemetryTask>("buildNativeTelemetry") {
 tasks.register<Copy>("copyNativeTelemetry") {
     group = "build"
     description = "Copies libnkm_telemetry.so into the app JNI libs staging directory."
+
     dependsOn("buildNativeTelemetry")
 
-    from(nativeTelemetryCrateDir.file("target/${nativeTelemetryTarget.get()}/release/libnkm_telemetry.so"))
+    from(
+        nativeTelemetryCrateDir.file(
+            "target/${nativeTelemetryTarget.get()}/release/libnkm_telemetry.so"
+        )
+    )
+
     into(nativeTelemetryOutputDir)
 }
 
@@ -112,12 +174,18 @@ configurations.all {
         force(libs.guava)
         force(libs.listenablefuture)
     }
-    exclude(group = "com.google.guava", module = "listenablefuture")
+
+    exclude(
+        group = "com.google.guava",
+        module = "listenablefuture"
+    )
 }
 
 kotlin {
-    compilerOptions { 
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) 
+    compilerOptions {
+        jvmTarget.set(
+            org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        )
     }
 }
 
@@ -167,9 +235,14 @@ dependencies {
     implementation(libs.libsu)
     implementation(libs.coil.compose)
     implementation(libs.accompanist.drawablepainter)
+
     implementation(libs.guava) {
-        exclude(group = "com.google.guava", module = "listenablefuture")
+        exclude(
+            group = "com.google.guava",
+            module = "listenablefuture"
+        )
     }
+
     implementation(libs.listenablefuture)
 
     // Testing
