@@ -3,7 +3,7 @@ package id.nkz.nokontzzzmanager.utils
 object KernelPaths {
     // KGSL Skip Zeroing paths
     val KGSL_SKIP_ZEROING = listOf(
-        "/sys/module/msm_kgsl_core/parameters/kgsl_skip_zeroing",
+        "/sys/kernel/fd/kgsl_skip_zeroing",
         "/sys/kernel/e404/kgsl_skip_zeroing",
         "/sys/kernel/lunar_attributes/kgsl_skip_zeroing",
         "/sys/kernel/lunar_attributes/lunar_kgsl_skip_zeroing",
