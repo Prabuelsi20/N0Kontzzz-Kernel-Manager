@@ -15,6 +15,7 @@ object KernelPaths {
 
     // Avoid Dirty PTE paths
     val AVOID_DIRTY_PTE = listOf(
+        "/sys/kernel/fd/avoid_dirty_pte",
         "/sys/kernel/n0kz_attributes/avoid_dirty_pte",
         "/sys/kernel/e404/avoid_dirty_pte"
     )
@@ -28,8 +29,11 @@ object KernelPaths {
     // Bypass Charging path
     const val BYPASS_CHARGING = "/sys/class/power_supply/battery/input_suspend"
 
-    // Force Fast Charge path
-    const val FORCE_FAST_CHARGE = "/sys/kernel/fast_charge/force_fast_charge"
+    // Force Fast Charge paths
+    val FORCE_FAST_CHARGE = listOf(
+        "/sys/kernel/fd/force_fast_charge",
+        "/sys/kernel/fast_charge/force_fast_charge"
+    )
 
     // GPU Throttling paths
     val GPU_THROTTLING = listOf(

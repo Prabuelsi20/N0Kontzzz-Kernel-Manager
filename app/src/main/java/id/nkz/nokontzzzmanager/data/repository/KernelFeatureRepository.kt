@@ -103,19 +103,41 @@ class KernelFeatureRepository @Inject constructor(
 
     // ── USB Fast Charge ─────────────────────────────────────────────────
 
-    suspend fun isForceFastChargeAvailable(): Boolean {
-        if (File(KernelPaths.FORCE_FAST_CHARGE).exists()) return true
-        return sysfsHelper.readFileToString(KernelPaths.FORCE_FAST_CHARGE, "USB Fast Charge Check") != null
+    private suspend fun getAvailableForceFastChargePath(): String? {
+        for (path in KernelPaths.FORCE_FAST_CHARGE) {
+            if (File(path).exists()) return path
+        }
+        for (path in KernelPaths.FORCE_FAST_CHARGE) {
+            if (sysfsHelper.readFileToString(
+                    path,
+                    "USB Fast Charge Check",
+                    true
+                ) != null
+            ) return path
+        }
+        return null
     }
 
+    suspend fun isForceFastChargeAvailable(): Boolean =
+        getAvailableForceFastChargePath() != null
+
     suspend fun getForceFastCharge(): Boolean {
-        val value = sysfsHelper.readFileToString(KernelPaths.FORCE_FAST_CHARGE, "USB Fast Charge Status")
+        val path = getAvailableForceFastChargePath() ?: return false
+        val value = sysfsHelper.readFileToString(
+            path,
+            "USB Fast Charge Status"
+        )
         return value?.trim() == "1"
     }
 
     suspend fun setForceFastCharge(enabled: Boolean): Boolean {
+        val path = getAvailableForceFastChargePath() ?: return false
         val value = if (enabled) "1" else "0"
-        return sysfsHelper.writeStringToFile(KernelPaths.FORCE_FAST_CHARGE, value, "USB Fast Charge")
+        return sysfsHelper.writeStringToFile(
+            path,
+            value,
+            "USB Fast Charge"
+        )
     }
 
     // ── Background App Blocker ──────────────────────────────────────────
