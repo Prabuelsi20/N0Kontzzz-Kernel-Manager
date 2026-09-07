@@ -11,9 +11,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  RELEASE_TAG: v1.0.0-hotfix
+  RELEASE_TAG: v1.0.0
   RELEASE_NAME: "N0Kontzzz Kernel Manager v1.0.0 - Universal Kernel Build"
-  APK_NAME: "N0Kontzzz-Kernel-Manager-v1.0.0-hotfix-universal.apk"
+  APK_NAME: "N0Kontzzz-Kernel-Manager-v1.0.0-universal.apk"
 
 jobs:
   build:
@@ -395,7 +395,7 @@ jobs:
           echo "Previous tag: ${PREVIOUS_TAG:-none}"
 
           cat > release-notes.md <<'EOF'
-          # N0Kontzzz Kernel Manager v1.0.0-hotfix
+          # N0Kontzzz Kernel Manager v1.0.0
 
           First custom stable release based on the **N0Kontzzz Kernel Manager** source.
 
